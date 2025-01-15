@@ -119,16 +119,20 @@ void matrix_mul_cpu(int *a, int *b, int *c, int *d, int *e, int *f, int n)
     {
         for (int j = 0; j < n; j++)
         {
-            int sum_r = 0;
-            int sum_i = 0;
+            int sum_ac = 0;
+            int sum_bd = 0;
+            int sum_ad = 0;
+            int sum_bc = 0;
 
             for (int k = 0; k < n; k++)
             {
-                sum_r += a[i * n + k] * b[k * n + j];
-                sum_i += c[i * n + k] * d[k * n + j];
+                sum_ac += a[i * n + k] * c[k * n + j];
+                sum_bd += b[i * n + k] * d[k * n + j];
+                sum_ad += a[i * n + k] * d[k * n + j];
+                sum_bc += b[i * n + k] * c[k * n + j];
             }
-            e[i * n + j] = sum_r;
-            f[i * n + j] = sum_i;
+            e[i * n + j] = sum_ac - sum_bd;
+            f[i * n + j] = sum_ad + sum_bc;
         }
     }
 }
@@ -140,14 +144,18 @@ __global__ void matrix_mul(int *a, int *b, int *c, int *d, int *e, int *f, int n
 
     if (row < n && col < n)
     {
-        int sum_r = 0;
-        int sum_i = 0;
+        int sum_ac = 0;
+        int sum_bd = 0;
+        int sum_ad = 0;
+        int sum_bc = 0;
         for (int i = 0; i < n; i++)
         {
-            sum_r += a[row * n + i] * b[i * n + col];
-            sum_i += c[row * n + i] * d[i * n + col];
+            sum_ac += a[row * n + i] * c[i * n + col];
+            sum_bd += b[row * n + i] * d[i * n + col];
+            sum_ad += a[row * n + i] * d[i * n + col];
+            sum_bc += b[row * n + i] * c[i * n + col];
         }
-        e[row * n + col] = sum_r;
-        f[row * n + col] = sum_i;
+        e[row * n + col] = sum_ac - sum_bd;
+        f[row * n + col] = sum_ad + sum_bc;
     }
 }
