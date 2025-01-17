@@ -52,11 +52,32 @@ if __name__ == "__main__":
         j += chunk_size
         
     sublists[i].append(pg[j : ])
+    
+    com.Barrier()
 
+    start = time.time()
     with MPIPoolExecutor(max_workers=size) as executor:
         results = executor.map(f, sublists[rank])
+    
+    com.Barrier()
+    end = time.time()
         
     acc = [item for sublist in results for item in sublist]
     
     for s in acc:
         print(s)
+    
+    com.Barrier()
+    if rank == 0:        
+        max_time = end - start
+        
+        for i in range(1, size):
+            t = com.recv(source=i)
+            
+            if max_time < t:
+                max_time = t
+        
+        print(f'Execution time: {max_time} ms')
+    else:
+        com.send(end-start, dest=0)
+

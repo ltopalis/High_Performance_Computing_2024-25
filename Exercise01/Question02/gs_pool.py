@@ -30,15 +30,22 @@ pg = ParameterGrid(params)
 
 pool = Pool(len(pg))
 
+start = time.time()
 results = pool.map(f, pg)
+end = time.time()
 for r in results:
     print(r)
+print(f'Execution time: {end-start} ms')
     
 print()
-    
+
+start = time.time()  
 results = pool.map_async(f, pg)
 while not results.ready():
     time.sleep(1)
+end = time.time()
+
 for r in results.get():
     print(r)
 
+print(f'Execution time: {end-start} ms')

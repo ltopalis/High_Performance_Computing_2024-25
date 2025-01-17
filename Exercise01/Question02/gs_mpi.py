@@ -6,6 +6,8 @@ from sklearn.datasets import make_classification
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+import time
+
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
@@ -26,6 +28,7 @@ if rank == 0: # master
         snd = {'p': p, "X_train": X_train, "X_test": X_test, "y_train": y_train, "y_test": y_test}
         comm.send(snd, dest=i)
     
+    start = time.time()
     l1 = pg[0]['mlp_layer1']
     l2 = pg[0]['mlp_layer2']
     l3 = pg[0]['mlp_layer3']
@@ -33,21 +36,31 @@ if rank == 0: # master
     m.fit(X_train, y_train)
     y_pred = m.predict(X_test)
     ac = accuracy_score(y_pred, y_test)
+    end = time.time()
     
     results = [None for _ in range(size)]
     
     results[0] = (0, pg[0], ac)
     
+    max = end - start
+    
     for proc in range(1, size):
         d = comm.recv(source=proc)
         
-        results[d[0]] = d
+        results[d[0]] = d[0:3]
+        
+        if d[3] > max:
+            max = d[3]
     
     for r in results:
         print(r)
+        
+    print(f'Execution time: {max}ms')
     
 else:
     data = comm.recv(source=0)
+    
+    start = time.time()
 
     l1 = data['p']['mlp_layer1']
     l2 = data['p']['mlp_layer2']
@@ -57,4 +70,6 @@ else:
     y_pred = m.predict(data['X_test'])
     ac = accuracy_score(y_pred, data['y_test'])
 
-    comm.send((rank, data['p'], ac), dest=0)
+    end = time.time()
+    comm.send((rank, data['p'], ac, end-start), dest=0)
+    
