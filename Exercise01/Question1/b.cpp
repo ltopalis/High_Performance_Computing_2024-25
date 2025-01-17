@@ -56,6 +56,8 @@ void MPI_Exscan_pt2pt(int send_value, int &rec_value)
     num_threads = omp_get_num_threads();
 
     rec_value = send_value;
+    if (!rank && !thread_id)
+        rec_value = 0;
 
     for (int process = 0; process <= rank; process++)
     {
@@ -80,6 +82,4 @@ void MPI_Exscan_pt2pt(int send_value, int &rec_value)
             MPI_Send(&send_value, 1, MPI_INT, process, thread, MPI_COMM_WORLD);
         }
     }
-
-    
 }

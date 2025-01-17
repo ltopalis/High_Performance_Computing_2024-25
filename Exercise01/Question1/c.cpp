@@ -53,8 +53,7 @@ int main(int argc, char **argv)
                            static_cast<unsigned int>(thread_id)};
         std::mt19937 gen(seed);
         std::uniform_real_distribution<double> dis(std::numeric_limits<double>::min(),
-                                                  std::numeric_limits<double>::max());
-
+                                                   std::numeric_limits<double>::max());
 
         for (int i = 0; i < N; i++)
             for (int j = 0; j < N; j++)
@@ -93,7 +92,7 @@ int main(int argc, char **argv)
 
         FILE *f = fopen("./output_c.bin", "rb");
 
-        double written[N*N*N];
+        double written[N * N * N];
         int off = 0;
         bool flag = true;
 
@@ -121,12 +120,12 @@ int main(int argc, char **argv)
 
 #pragma omp barrier
 #pragma omp critical
-{
-    if(flag) 
-        cout << "Rank " << rank << " thread " << thread_id << " status: success" << endl;
-    else
-    cout << "Rank " << rank << " thread " << thread_id << " status: failed" << endl;
-}
+        {
+            if (flag)
+                cout << "Rank " << rank << " thread " << thread_id << " status: success" << endl;
+            else
+                cout << "Rank " << rank << " thread " << thread_id << " status: failed" << endl;
+        }
     }
 
     MPI_Finalize();
@@ -145,6 +144,8 @@ void MPI_Exscan_pt2pt(long long int send_value, long long int &rec_value)
     num_threads = omp_get_num_threads();
 
     rec_value = send_value;
+    if (!rank && !thread_id)
+        rec_value = 0;
 
     for (int process = 0; process <= rank; process++)
     {

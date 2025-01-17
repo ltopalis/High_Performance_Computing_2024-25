@@ -116,7 +116,7 @@ int main(int argc, char **argv)
         fread(readData.data(), compressedData.size(), 1, f);
 
         fclose(f);
-        
+
 #pragma omp barrier
         MPI_Barrier(MPI_COMM_WORLD);
         if (!rank)
@@ -178,6 +178,8 @@ void MPI_Exscan_pt2pt(long long int send_value, long long int &rec_value)
     num_threads = omp_get_num_threads();
 
     rec_value = send_value;
+    if (!rank && !thread_id)
+        rec_value = 0;
 
     for (int process = 0; process <= rank; process++)
     {
