@@ -67,17 +67,5 @@ if __name__ == "__main__":
     for s in acc:
         print(s)
     
-    com.Barrier()
-    if rank == 0:        
-        max_time = end - start
-        
-        for i in range(1, size):
-            t = com.recv(source=i)
-            
-            if max_time < t:
-                max_time = t
-        
-        print(f'Execution time: {max_time} ms')
-    else:
-        com.send(end-start, dest=0)
+    print(f'Execution time: {end-start} ms')
 
