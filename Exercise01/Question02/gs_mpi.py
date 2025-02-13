@@ -32,7 +32,7 @@ if rank == 0: # master
     l1 = pg[0]['mlp_layer1']
     l2 = pg[0]['mlp_layer2']
     l3 = pg[0]['mlp_layer3']
-    m = MLPClassifier(hidden_layer_sizes=(l1, l2, l3), random_state=42)
+    m = MLPClassifier(hidden_layer_sizes=(l1, l2, l3), random_state=32)
     m.fit(X_train, y_train)
     y_pred = m.predict(X_test)
     ac = accuracy_score(y_pred, y_test)
@@ -65,7 +65,7 @@ else:
     l1 = data['p']['mlp_layer1']
     l2 = data['p']['mlp_layer2']
     l3 = data['p']['mlp_layer3']
-    m = MLPClassifier(hidden_layer_sizes=(l1, l2, l3), random_state=42)
+    m = MLPClassifier(hidden_layer_sizes=(l1, l2, l3), random_state=32)
     m.fit(data['X_train'], data['y_train'])
     y_pred = m.predict(data['X_test'])
     ac = accuracy_score(y_pred, data['y_test'])

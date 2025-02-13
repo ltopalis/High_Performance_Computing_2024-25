@@ -5,10 +5,12 @@
 #include <time.h>
 #include <string.h>
 
+#ifndef N
 #define N 5
+#endif
+
 #define TRUE 1
 #define FALSE 0
-
 
 void initTables(int A[N][N], int B[N][N], int C[N][N], int D[N][N], int E[N][N], int F[N][N], int E_d[N][N], int F_d[N][N]);
 int randomNumber(unsigned int *seed, int min, int max);
@@ -21,15 +23,27 @@ int main(int argc, char **argv)
 {
     int A[N][N], B[N][N], C[N][N], D[N][N], E[N][N], F[N][N], E_d[N][N], F_d[N][N];
     int check;
-    char *ans;
+    char *ans = (char *)malloc(10 * sizeof(char));
+    double start_cpu, end_cpu, start_gpu, end_gpu;
 
     initTables(A, B, C, D, E, F, E_d, F_d);
+
+    start_cpu = omp_get_wtime();
     arrays_multiplication_cpu(A, B, C, D, E, F);
+    end_cpu = omp_get_wtime();
+
+    start_gpu = omp_get_wtime();
     arrays_multiplication_gpu(A, B, C, D, E_d, F_d);
+    end_gpu = omp_get_wtime();
     check = cmpArrays(E, F, E_d, F_d);
 
     if (check)
+    {
+        printf("N = %d\n", N);
         printf("Everythong is fine!\n");
+        printf("CPU Execution Time: %f seconds\n", end_cpu - start_cpu);
+        printf("GPU Execution Time: %f seconds\n", end_gpu - start_gpu);
+    }
     else
         printf("Arrays missmatch\n");
 
@@ -47,6 +61,8 @@ int main(int argc, char **argv)
         printTables("E (gpu)", E_d);
         printTables("F (gpu)", F_d);
     }
+
+    free(ans);
 
     return 0;
 }

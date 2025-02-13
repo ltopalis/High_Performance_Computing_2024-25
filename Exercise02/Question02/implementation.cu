@@ -3,7 +3,9 @@
 #include <time.h>
 #include <cuda_runtime.h>
 
+#ifndef N
 #define N 10
+#endif
 
 int *malloc_h(long unsigned int dim);
 bool check_arrays(int *a, int *b, long unsigned int dim);
@@ -15,6 +17,8 @@ int main()
 {
     int *a, *b, *c, *d, *e, *f, *e_cpu, *f_cpu; // host
     int *d_a, *d_b, *d_c, *d_d, *d_e, *d_f;     // device
+
+    clock_t start_cpu, end_cpu;
 
     // memory allocation
     a = malloc_h(N);
@@ -37,10 +41,10 @@ int main()
     srand(time(NULL));
     for (int i = 0; i < N * N; i++)
     {
-        a[i] = rand() % 10;
-        b[i] = rand() % 10;
-        c[i] = rand() % 10;
-        d[i] = rand() % 10;
+        a[i] = rand() % 500;
+        b[i] = rand() % 500;
+        c[i] = rand() % 500;
+        d[i] = rand() % 500;
         e[i] = 0;
         f[i] = 0;
         e_cpu[i] = 0;
@@ -55,17 +59,32 @@ int main()
     dim3 blockSize(16, 16);
     dim3 gridSize((N + blockSize.x - 1) / blockSize.x, (N + blockSize.y - 1) / blockSize.y);
 
+    cudaEvent_t start_gpu, stop_gpu;
+    cudaEventCreate(&start_gpu);
+    cudaEventCreate(&stop_gpu);
+    cudaEventRecord(start_gpu);
     matrix_mul<<<gridSize, blockSize>>>(d_a, d_b, d_c, d_d, d_e, d_f, N);
+    cudaEventRecord(stop_gpu);
+    cudaEventSynchronize(stop_gpu);
+    float gpu_time_used;
+    cudaEventElapsedTime(&gpu_time_used, start_gpu, stop_gpu);
     cudaDeviceSynchronize();
 
     cudaMemcpy(e, d_e, N * N * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(f, d_f, N * N * sizeof(int), cudaMemcpyDeviceToHost);
 
+    start_cpu = clock();
     matrix_mul_cpu(a, b, c, d, e_cpu, f_cpu, N);
+    end_cpu = clock();
 
     bool result = check_arrays(e, e_cpu, N) & check_arrays(f, f_cpu, N);
     if (result)
+    {
         printf("Results match!\n");
+        printf("N = %d\n", N);
+        printf("CPU Execution Time: %f seconds\n", ((double)(end_cpu - start_cpu)) / CLOCKS_PER_SEC);
+        printf("GPU Execution Time: %f seconds\n", gpu_time_used / 1000.0);
+    }
     else
         printf("Results mismatch!\n");
 
